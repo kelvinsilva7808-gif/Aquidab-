@@ -58,8 +58,8 @@ main{padding:32px 40px}.grid{grid-template-columns:repeat(4,1fr)}.fab{bottom:30p
 .doc .cond{background:#111216;color:#fff;border-radius:10px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;margin-top:18px}.doc .big2{font:800 28px Inter,sans-serif}
 .doc .tm{color:#777;font-size:11px;margin:16px 0 8px;padding-bottom:8px;border-bottom:1px solid #ddd}.doc .ft{display:flex;justify-content:space-between;font-size:12px}
 nav{overflow-x:auto}nav button{flex:1 0 auto;min-width:70px}
-</style><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Aquidabã"><script src="config.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script></head><body>
-<div id="app"><div class="side" id="side"></div><main id="main"></main></div><nav id="nav"></nav><div id="modal"></div><div id="login"><div class="box"><div class="logo" style="font-size:40px;text-align:center">Aquidabã</div><div class="flag"><i></i><i></i><i></i></div><label>E-mail</label><input id="em" type="email" autocomplete="username"><label>Senha</label><input id="pw" type="password" autocomplete="current-password"><div id="invw" style="display:none"><label>Código de convite</label><input id="inv" autocapitalize="characters" autocomplete="off"></div><div id="lmsg" class="k" style="margin:10px 0;min-height:20px"></div><button class="b" id="bEnt" style="width:100%" onclick="doLogin()">Entrar</button><button class="s" id="bNew" style="width:100%;margin-top:10px" onclick="modoNovo()">Tenho um código de convite</button></div></div>
+</style><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Aquidabã"><script src="config.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script></head><body>
+<div id="app"><div class="side" id="side"></div><main id="main"></main></div><nav id="nav"></nav><div id="modal"></div><div id="login"><div class="box"><div class="logo" style="font-size:40px;text-align:center">Aquidabã</div><div class="flag"><i></i><i></i><i></i></div><label>E-mail</label><input id="em" type="email" autocomplete="username"><label>Senha</label><input id="pw" type="password" autocomplete="current-password"><div id="invw" style="display:none"><label>Código de convite</label><input id="inv" autocapitalize="characters" autocomplete="off"></div><div id="cfgw" style="display:none"><label>URL do Supabase</label><input id="cu" placeholder="https://abcdefg.supabase.co"><label>Chave (publishable ou anon)</label><input id="ck"><button class="s" style="width:100%;margin-top:10px" onclick="saveCfg()">Salvar conexão neste aparelho</button></div><div id="lmsg" class="k" style="margin:10px 0;min-height:20px"></div><button class="b" id="bEnt" style="width:100%" onclick="doLogin()">Entrar</button><button class="s" id="bNew" style="width:100%;margin-top:10px" onclick="modoNovo()">Tenho um código de convite</button></div></div>
 <script>
 const $=s=>document.querySelector(s);
 const R=n=>(+n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -214,10 +214,13 @@ function draw(){if(PR)return propDraw();
  $('#side').innerHTML=`<img src="${LOGO}" alt="" style="width:76px;height:76px;margin:0 8px 12px"><div class="logo">Aquidabã<div class="flag"><i></i><i></i><i></i></div></div>`+NAV.map(n=>`<button class="${page==n[0]?'on':''}" onclick="page='${n[0]}';draw()">${ic(n[0])}${n[1]}</button>`).join('');
  $('#main').innerHTML=`<div class="top"><div style="width:150px"><div class="logo">Aquidabã</div><div class="flag"><i></i><i></i><i></i></div></div></div>`+(P[page==='lavagens'?'lavagens':page]||P.painel)()}
 draw();
-const CF=window.AQ_CFG||{},SB_URL=String(CF.url||'').trim().replace(/\/rest\/v1\/?$/,'').replace(/\/$/,''),SB_KEY=String(CF.key||'').trim();
+let CF=window.AQ_CFG||{};const okc=c=>c&&c.url&&c.key&&!/COLE_AQUI/.test(c.url+c.key);
+if(!okc(CF))try{const l=JSON.parse(localStorage.getItem('aq_cfg')||'null');if(okc(l))CF=l}catch(e){}
+const SB_URL=String(CF.url||'').trim().replace(/\/rest\/v1\/?$/,'').replace(/\/$/,''),SB_KEY=String(CF.key||'').trim();
+function saveCfg(){try{localStorage.setItem('aq_cfg',JSON.stringify({url:$('#cu').value.trim(),key:$('#ck').value.trim()}))}catch(e){}location.reload()}
 let sb=null,CFGERR='',uU=null;
 try{if(typeof supabase==='undefined')throw new Error('A biblioteca do Supabase não carregou. Confira a internet ou desligue o bloqueador de anúncios.');
- if(!SB_URL||!SB_KEY||/COLE_AQUI/.test(SB_URL+SB_KEY))throw new Error('Falta preencher a URL e a chave do Supabase no arquivo config.js.');
+ if(!SB_URL||!SB_KEY||/COLE_AQUI/.test(SB_URL+SB_KEY))throw new Error('Falta preencher a URL e a chave do Supabase. '+(window.AQ_CFG?'O config.js foi encontrado, mas está vazio ou ainda com COLE_AQUI.':'O arquivo config.js NÃO foi encontrado no site (ele precisa estar na mesma pasta do index.html).')+' Você também pode preencher abaixo.');
  if(!/^https:\/\/.+\.supabase\.co$/.test(SB_URL))throw new Error('A URL do Supabase parece errada. Ela deve ser parecida com https://abcdefg.supabase.co');
  sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){CFGERR=String(e.message||e)}
 const lm=t=>$('#lmsg').textContent=t;
@@ -235,7 +238,7 @@ P.cfg=()=>`<h2>Ajustes</h2><div class="card"><div class="k">Conta conectada</div
 async function pull(){const{data,error}=await sb.from('app_state').select('json').eq('id','empresa').maybeSingle();if(error)return;
  if(data&&data.json&&data.json.cars){S=Object.assign({},DEF,data.json);try{localStorage.setItem('aq',JSON.stringify(S))}catch(e){}if(!document.querySelector('.modal')&&!PR)draw()}else pushState()}
 async function pushState(){if(!uU)return;await sb.from('app_state').upsert({id:'empresa',json:S,updated_at:new Date().toISOString()})}
-async function start(){if(!sb){$('#login').style.display='flex';lm(CFGERR);return}const{data}=await sb.auth.getSession();if(!data.session){$('#login').style.display='flex';return}
+async function start(){if(!sb){$('#login').style.display='flex';$('#cfgw').style.display='block';lm(CFGERR);return}const{data}=await sb.auth.getSession();if(!data.session){$('#login').style.display='flex';return}
  uU=data.session.user.id;UE=data.session.user.email;$('#login').style.display='none';await pull()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&uU)pull()});setInterval(()=>{if(uU&&!document.hidden)pull()},15000);
 start();if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
