@@ -215,6 +215,8 @@ function draw(){if(PR)return propDraw();
  $('#main').innerHTML=`<div class="top"><div style="width:150px"><div class="logo">Aquidabã</div><div class="flag"><i></i><i></i><i></i></div></div></div>`+(P[page==='lavagens'?'lavagens':page]||P.painel)()}
 draw();
 let CF=window.AQ_CFG||{};const okc=c=>c&&c.url&&c.key&&!/COLE_AQUI/.test(c.url+c.key);
+const DEF_CFG={url:'https://bmgbnrlaukmxbfgfowzy.supabase.co',key:'sb_publishable_vbkDcR5fh8MFXFyobi3Z6w_oIIVT5UB'};
+if(!okc(CF))CF=DEF_CFG;
 if(!okc(CF))try{const l=JSON.parse(localStorage.getItem('aq_cfg')||'null');if(okc(l))CF=l}catch(e){}
 const SB_URL=String(CF.url||'').trim().replace(/\/rest\/v1\/?$/,'').replace(/\/$/,''),SB_KEY=String(CF.key||'').trim();
 function saveCfg(){try{localStorage.setItem('aq_cfg',JSON.stringify({url:$('#cu').value.trim(),key:$('#ck').value.trim()}))}catch(e){}location.reload()}
@@ -224,11 +226,12 @@ try{if(typeof supabase==='undefined')throw new Error('A biblioteca do Supabase n
  if(!/^https:\/\/.+\.supabase\.co$/.test(SB_URL))throw new Error('A URL do Supabase parece errada. Ela deve ser parecida com https://abcdefg.supabase.co');
  sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){CFGERR=String(e.message||e)}
 const lm=t=>$('#lmsg').textContent=t;
-async function doLogin(){lm('Entrando...');const{error}=await sb.auth.signInWithPassword({email:$('#em').value,password:$('#pw').value});if(error)lm('E-mail ou senha incorretos.');else start()}
+async function doLogin(){lm('Entrando...');const{error}=await sb.auth.signInWithPassword({email:$('#em').value.trim().toLowerCase(),password:$('#pw').value});
+ if(error){const m=String(error.message||'');if(/api key/i.test(m)){try{localStorage.removeItem('aq_cfg')}catch(e){}}lm(/api key/i.test(m)?'A chave do Supabase está errada. Atualize a página e tente de novo.':/not confirmed/i.test(m)?'Seu e-mail ainda não foi confirmado. Confirme pelo link que o Supabase enviou, ou peça ao dono para liberar.':/invalid login/i.test(m)?'E-mail ou senha incorretos.':'Não foi possível entrar: '+m)}else start()}
 let NEW=false,UE='';
 function modoNovo(){NEW=!NEW;$('#invw').style.display=NEW?'block':'none';$('#bEnt').textContent=NEW?'Criar conta':'Entrar';$('#bEnt').onclick=NEW?doSign:doLogin;$('#bNew').textContent=NEW?'Já tenho conta':'Tenho um código de convite';lm('')}
 async function doSign(){const code=$('#inv').value.trim();if(!code){lm('Digite o código de convite.');return}lm('Criando...');
- const{data,error}=await sb.auth.signUp({email:$('#em').value,password:$('#pw').value,options:{data:{invite:code}}});
+ const{data,error}=await sb.auth.signUp({email:$('#em').value.trim().toLowerCase(),password:$('#pw').value,options:{data:{invite:code}}});
  if(error){lm('Não foi possível criar a conta. Confira o código de convite (ele vale uma vez) e use senha com 6 ou mais caracteres.');return}
  if(data.session)start();else{lm('Conta criada! Toque em Já tenho conta e entre.')}}
 async function sair(){await sb.auth.signOut();try{localStorage.removeItem('aq')}catch(e){}location.reload()}
